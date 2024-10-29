@@ -1,4 +1,4 @@
-name: PR Check
+name: CI
 
 on:
   pull_request:
@@ -16,15 +16,16 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.11'  # Adjust to your Python version
+          python-version: '3.11'
 
       - name: Install dependencies
         run: |
           python -m venv .venv
-          source .venv/bin/activate
-          pip install -r requirements.txt  # Adjust if your requirements file is named differently
+          .venv/bin/pip install -r requirements.txt
+
+      - name: Set PYTHONPATH
+        run: echo "PYTHONPATH=$(pwd)/src" >> $GITHUB_ENV
 
       - name: Run tests
         run: |
-          source .venv/bin/activate
-          pytest  # Run your tests here
+          .venv/bin/pytest tests/unit
