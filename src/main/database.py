@@ -41,3 +41,6 @@ class UserRepository:
         if user:
             self.users.pop(id, None)
         return user
+
+    def cleanup(self):
+        self.users.clear()
