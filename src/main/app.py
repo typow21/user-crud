@@ -9,5 +9,3 @@ def root():
 @app.get("/users")
 def get_users():
     return [{"Hello": "World"}, {"Hello": "World"}]
-
-
