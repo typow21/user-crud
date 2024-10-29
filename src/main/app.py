@@ -38,6 +38,3 @@ def post_user(user: User):
     #TODO make this more efficient, lots of dumping and validating
     user_dict = user.model_dump()
     return app.state.user_repo.add_user(user_dict)
-
-
-
