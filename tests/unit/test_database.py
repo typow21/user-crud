@@ -5,9 +5,12 @@ from src.main.database import UserRepository
 
 class TestUserRepository():
 
-    @pytest.fixture
+    @pytest.fixture(scope="function")
     def user_repository(self):
-        yield UserRepository()
+        user_repo = UserRepository()
+        yield user_repo
+        user_repo.cleanup()
+        
 
     def build_user(self):
         return {
