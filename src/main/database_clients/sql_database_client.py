@@ -51,3 +51,7 @@ class SqlDbClient(AbcDatabaseClient):
                 session.delete(record)
                 session.commit()
                 return data
+    
+    def cleanup(self):
+        self.database.close()
+        SqlDbClient._instance = None

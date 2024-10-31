@@ -21,10 +21,14 @@ class MockDatabaseClient(AbcDatabaseClient):
             data = self._storage.get(key)
             del self._storage[key]
             return data
+    
+    def cleanup(self):
+        self._instance = None
+        self._storage.clear()
 
 class TestUserRepository():
 
-    @pytest.fixture(scope="function")
+    @pytest.fixture
     def user_repository(self):
         user_repo = UserRepository(db_client = MockDatabaseClient())
         yield user_repo

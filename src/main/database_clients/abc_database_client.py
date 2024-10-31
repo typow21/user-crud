@@ -9,17 +9,20 @@ class AbcDatabaseClient(ABC):
 
     @abstractmethod
     def get_data(self, key: str) -> dict:
-        pass
+        raise NotImplemented
     
     @abstractmethod
     def get_all_data(self) -> list[dict]:
-        pass
+        raise NotImplemented
 
     @abstractmethod
     def add_data(self, key, data) -> dict:
-        pass
+        raise NotImplemented
 
     @abstractmethod
     def delete_data(self, key) -> dict:
-        pass
+        raise NotImplemented
 
+    @abstractmethod
+    def cleanup(self):
+        raise NotImplemented

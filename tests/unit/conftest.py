@@ -13,12 +13,8 @@ def build_user():
             "phone_number": "123-456-7890"
         }
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def client():
     with TestClient(app) as client:
-        users = {}
-        for _ in range(10):
-            user = build_user()
-            users[user['id']] = user
-        app.state.user_repo.users = users
         yield client
+    

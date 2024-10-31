@@ -36,5 +36,6 @@ class RedisDbClient(AbcDatabaseClient):
             self.redis_client.delete(key)
             return data
 
-    def close_connection(self):
+    def cleanup(self):
         self.redis_client.close()
+        RedisDbClient._instance = None

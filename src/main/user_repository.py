@@ -49,4 +49,5 @@ class UserRepository:
         return self.db_client.delete_data(id)
 
     def cleanup(self):
-        pass
+        self.db_client.cleanup()
+        UserRepository._instance = None

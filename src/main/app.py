@@ -11,8 +11,9 @@ async def lifespan(app: FastAPI):
     db_client = RedisDbClient()
     user_repo = UserRepository(db_client = db_client)
     app.state.user_repo = user_repo
+    
     yield
-    # Clean up the ML models and release the resources
+
     user_repo.cleanup()
 
 
