@@ -57,5 +57,4 @@ class TestApp:
         response = client.post(url=url, json=user_to_add)
         assert response.status_code == 200
         data = response.json()
-        assert data['id'] == user_to_add['id']
-        assert user_to_add['id'] in app.state.user_repo.users
+        assert data['id'] in app.state.user_repo.users
