@@ -1,17 +1,19 @@
 from fastapi import FastAPI
 
 from contextlib import asynccontextmanager
-from src.main.database import UserRepository
+from src.main.user_repository import UserRepository
 from src.main.user_model import UserRequest, User
+from src.main.database_clients.redis_database_client import RedisDbClient
+from src.main.database_clients.sql_database_client import SqlDbClient
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    
-    user_repo = UserRepository()
+    db_client = RedisDbClient()
+    user_repo = UserRepository(db_client = db_client)
     app.state.user_repo = user_repo
-
+    
     yield
-    # Clean up the ML models and release the resources
+
     user_repo.cleanup()
 
 
@@ -22,15 +24,15 @@ def root():
     return {"Hello": "World"}
 
 @app.get("/users")
-def get_users() -> list[dict]:
+def get_users() -> list[User]:
     return UserRepository().get_all_users()
 
 @app.get("/user/{id}")
-def get_user_by_id(id: str):
+def get_user_by_id(id: str)->User:
     return UserRepository().get_user(id)
 
 @app.delete("/user/{id}")
-def delete_user_by_id(id: str):
+def delete_user_by_id(id: str)->User:
     return UserRepository().delete_user(id)
 
 @app.post("/user")

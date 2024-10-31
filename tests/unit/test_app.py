@@ -1,6 +1,10 @@
 import pytest
 from src.main.app import app
+from src.main.user_model import User
+from unittest.mock import Mock, patch
 import uuid
+import json
+
 class TestApp:
 
     def build_user(self):
@@ -13,10 +17,20 @@ class TestApp:
             "phone_number": "123-456-7890"
         }
 
+    @pytest.fixture(autouse=True)
+    def setup_redis_mock(self):
+
+        with patch('src.main.database_clients.redis_database_client.redis.Redis') as MockRedis:
+            self.mock_redis = MockRedis.return_value
+            self.mock_redis.keys = Mock(return_value=None)
+            self.mock_redis.set = Mock(return_value=True)
+            self.mock_redis.get = Mock(return_value=None)
+            self.mock_redis.delete = Mock(return_value=1)
+            yield
 
     @pytest.mark.asyncio
     async def test_app_start(self, client):
-        url = "http://localhost:8000/" 
+        url = "http://localhost:8000/"
         response = client.get(url)
         assert response.status_code == 200
         data = response.json()
@@ -24,37 +38,49 @@ class TestApp:
     
     @pytest.mark.asyncio
     async def test_app_get_users(self, client):
-        url = "http://localhost:8000/users" 
+
+        user_data = self.build_user()
+        self.mock_redis.get.return_value = json.dumps(user_data)
+        self.mock_redis.keys.return_value = [user_data['id']]
+        url = "http://localhost:8000/users"
         response = client.get(url)
         assert response.status_code == 200
         data = response.json()
-        assert data == app.state.user_repo.get_all_users()
+        assert data == [user_data]
 
     @pytest.mark.asyncio
     async def test_app_get_user(self, client):
         user = self.build_user()
-        app.state.user_repo.add_user(user)
-        url = f"http://localhost:8000/user/{user.get('id')}" 
+
+        self.mock_redis.get.return_value = json.dumps(user)
+        
+        url = f"http://localhost:8000/user/{user.get('id')}"
         response = client.get(url)
         assert response.status_code == 200
         data = response.json()
         assert data == user
+        self.mock_redis.get.assert_called_once_with(user['id'])
 
     @pytest.mark.asyncio
     async def test_app_delete_user(self, client):
-        user_to_delete = next(iter(app.state.user_repo.users))
-        url = f"http://localhost:8000/user/{user_to_delete}" 
+        user = self.build_user()
+        self.mock_redis.delete.return_value = 1
+        self.mock_redis.get.return_value = json.dumps(user)
+        url = f"http://localhost:8000/user/{user.get('id')}"
         response = client.delete(url)
         assert response.status_code == 200
         data = response.json()
-        assert data['id'] == user_to_delete
-        assert data['id'] not in app.state.user_repo.users
+        assert data['id'] == user['id']
+        self.mock_redis.delete.assert_called_once_with(user['id'])
 
     @pytest.mark.asyncio
     async def test_app_post_user(self, client):
         user_to_add = self.build_user()
+
+        self.mock_redis.set.return_value = True
+        
         url = "http://localhost:8000/user"
         response = client.post(url=url, json=user_to_add)
         assert response.status_code == 200
         data = response.json()
-        assert data['id'] in app.state.user_repo.users
+        self.mock_redis.set.assert_called_once_with(data['id'], json.dumps(data))
