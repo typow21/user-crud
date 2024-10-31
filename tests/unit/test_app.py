@@ -26,6 +26,8 @@ class TestApp:
             self.mock_redis.set = Mock(return_value=True)
             self.mock_redis.get = Mock(return_value=None)
             self.mock_redis.delete = Mock(return_value=1)
+            self.mock_redis.smembers = Mock(return_value=[])
+            self.mock_redis.sismember = Mock(return_value=0)
             yield
 
     @pytest.mark.asyncio
@@ -41,7 +43,7 @@ class TestApp:
 
         user_data = self.build_user()
         self.mock_redis.get.return_value = json.dumps(user_data)
-        self.mock_redis.keys.return_value = [user_data['id']]
+        self.mock_redis.keys.return_value = [user_data['id'].encode('utf-8')]
         url = "http://localhost:8000/users"
         response = client.get(url)
         assert response.status_code == 200

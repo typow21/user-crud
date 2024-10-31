@@ -22,6 +22,8 @@ class RedisDbClient(AbcDatabaseClient):
         all_data = []
         
         for key in keys:
+            if "email" in key.decode('utf-8'):
+                continue
             data = self.redis_client.get(key)
             if data:
                 all_data.append(json.loads(data))
@@ -35,6 +37,22 @@ class RedisDbClient(AbcDatabaseClient):
         if data:
             self.redis_client.delete(key)
             return data
+
+    def add_to_set(self, set_key, *values):
+
+        self.redis_client.sadd(set_key, *values)
+
+    def get_set_members(self, set_key):
+
+        return self.redis_client.smembers(set_key)
+
+    def is_member_in_set(self, set_key, value) -> bool:
+
+        return self.redis_client.sismember(set_key, value)
+
+    def remove_from_set(self, set_key, value) -> bool:
+
+        self.redis_client.srem(set_key, value)
 
     def cleanup(self):
         self.redis_client.close()
