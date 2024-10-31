@@ -1,10 +1,15 @@
 from fastapi import FastAPI, HTTPException
-
+import logging
 from contextlib import asynccontextmanager
 from src.main.user_repository import UserRepository
 from src.main.user_model import UserRequest, User
 from src.main.database_clients.redis_database_client import RedisDbClient
 from src.main.database_clients.sql_database_client import SqlDbClient
+from prometheus_fastapi_instrumentator import Instrumentator
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -19,9 +24,19 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+Instrumentator().instrument(app).expose(app)
+
+@app.get("/metrics") 
+def metrics():
+    return instrumentator.get_metrics()
+
 @app.get("/")
 def root():
     return {"Hello": "World"}
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
 
 @app.get("/users")
 def get_users() -> list[User]:
@@ -47,7 +62,6 @@ def delete_user_by_id(id: str)->User:
 
 def is_email_unique(email):
     redis_client = RedisDbClient()
-    print(email)
     return not bool(redis_client.is_member_in_set('email', email))
 
 

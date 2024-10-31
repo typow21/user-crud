@@ -3,6 +3,7 @@ uvicorn
 redis
 sqlalchemy
 psycopg2
+prometheus_fastapi_instrumentator
 
 pytest
 httpx
